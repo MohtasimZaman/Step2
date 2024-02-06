@@ -12,7 +12,7 @@
 class CChildView : public COpenGLWnd
 {
 // Construction
-public:
+public:s
 	CChildView();
 
 // Attributes

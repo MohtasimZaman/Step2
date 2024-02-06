@@ -86,6 +86,18 @@ void CChildView::OnGLDraw(CDC* pDC)
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
 
+    // Enable Lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    // Set Light Position
+    GLfloat lightpos[] = { 0.5, 2.0, 1.0, 0. };
+    glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
+
+    // Set the material properties for the front face of the objects
+    GLfloat msugreen[] = { 0.f, .47f, .2f,  1.f };
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, msugreen);
+
     // Draw a coordinate axis
     glColor3d(0., 1., 1.);
 
@@ -142,25 +154,26 @@ void CChildView::Box(GLdouble p_x, GLdouble p_y, GLdouble p_z, const GLdouble* p
     GLdouble g[] = { p_x, p_y, 0. };
     GLdouble h[] = { 0., p_y, 0. };
 
-    // I'm going to mess with the colors a bit so
-    // the faces will be visible in solid shading
-    glColor3d(p_color[0], p_color[1], p_color[2]);
+    glNormal3d(0., 0., 1.);
     Quad(a, b, c, d); // Front
 
-    glColor3d(p_color[0] * 0.95, p_color[1] * 0.95, p_color[2] * 0.95);
+    glNormal3d(1., 0., 0.);
     Quad(c, b, f, g); // Right
 
-    glColor3d(p_color[0] * 0.85, p_color[1] * 0.85, p_color[2] * 0.85);
+    glNormal3d(0., 0., -1.);
     Quad(h, g, f, e); // Back
 
-    glColor3d(p_color[0] * 0.90, p_color[1] * 0.90, p_color[2] * 0.90);
+    glNormal3d(-1., 0., 0.);
     Quad(d, h, e, a); // Left
 
-    glColor3d(p_color[0] * 0.92, p_color[1] * 0.92, p_color[2] * 0.92);
+    glNormal3d(0., 1., 0.);
     Quad(d, c, g, h); // Top
 
-    glColor3d(p_color[0] * 0.80, p_color[1] * 0.80, p_color[2] * 0.80);
+    glNormal3d(0., -1., 0.);
     Quad(e, f, b, a); // Bottom
+
+    GLfloat lightpos[] = { 10, 10, 10, 1.0 };
+    glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 }
 
 
