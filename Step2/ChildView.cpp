@@ -17,15 +17,91 @@
 CChildView::CChildView()
 {
     m_wood.LoadFile(L"textures/plank01.bmp");
+    m_fish_texture.LoadFile(L"models/BLUEGILL.BMP");
 
     m_spinAngle = 0;
     m_spinTimer = 0;
 
     m_camera.Set(20, 10, 50, 0, 0, 0, 0, 1, 0);
+    m_scene = -1;
+
+    CreateMesh();
 }
 
 CChildView::~CChildView()
 {
+}
+
+void CChildView::CreateMesh()
+{
+    double v[8][4] = { {0, 0, 2, 1}, {2, 0, 2, 1}, {2, 2, 2, 1}, {0, 2, 2, 1},
+        {0, 0, 0, 1}, {2, 0, 0, 1}, {2, 2, 0, 1}, {0, 2, 0, 1} };
+    double n[6][4] = { {0, 0, 1, 0}, {1, 0, 0, 0}, {0, 0, -1, 0},
+    {-1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 0, 0} };
+    //double t[4][3] = { {0, 0, 1}, {2, 0, 1}, {0, 2, 1}, {2, 2, 1} };
+
+    for (int i = 0; i < 8; i++)
+        m_mesh.AddVertex(v[i]);
+
+    for (int i = 0; i < 6; i++)
+        m_mesh.AddNormal(n[i]);
+
+    //for (int i = 0; i < 4; i++)
+    //    m_mesh.AddTexCoord(t[i]);
+
+    m_mesh.AddFlatQuad(0, 1, 2, 3, 0);
+    m_mesh.AddFlatQuad(1, 5, 6, 2, 1);
+    m_mesh.AddFlatQuad(5, 4, 7, 6, 2);
+    m_mesh.AddFlatQuad(4, 0, 3, 7, 3);
+    m_mesh.AddFlatQuad(3, 2, 6, 7, 4);
+    m_mesh.AddFlatQuad(0, 4, 5, 1, 5);
+
+    //
+   // Create a surface
+   //
+
+    double wid = 20;        // 20 units wide
+    double dep = 20;        // 20 units deep
+    int nW = 15;            // Number of quads across
+    int nD = 15;            // Number of quads deep
+    const double PI = 3.141592653;
+
+    // Create the vertices and -temporary- normals
+    // Note that the surface is nW+1 by nD+1 vertices
+    for (int j = 0; j <= nD; j++)
+    {
+        for (int i = 0; i <= nW; i++)
+        {
+            double x = double(i) / double(nW) * wid - wid / 2;
+            double z = double(j) / double(nD) * dep - dep / 2;
+            double y = sin(double(i) / double(nW) * 4 * PI) +
+                sin(double(j) / double(nD) * 3 * PI);
+
+            CGrVector normal(-4 * PI / wid * cos(double(i) / double(nW) * 4 * PI),
+                1., -3 * PI / dep * cos(double(j) / double(nD) * 3 * PI));
+            normal.Normalize();
+
+
+            m_surface.AddVertex(CGrVector(x, y, z, 1));
+            m_surface.AddNormal(normal);
+        }
+    }
+
+    // Create the quadrilaterals
+    for (int j = 0; j < nD; j++)
+    {
+        for (int i = 0; i < nW; i++)
+        {
+            int a = j * (nW + 1) + i;
+            int b = a + nW + 1;
+            int c = b + 1;
+            int d = a + 1;
+
+            m_surface.AddQuad(a, b, c, d);
+        }
+    }
+
+    m_fish.LoadOBJ("models\\fish4.obj");
 }
 
 
@@ -36,6 +112,7 @@ BEGIN_MESSAGE_MAP(CChildView, COpenGLWnd)
     ON_WM_LBUTTONDOWN()
     ON_WM_MOUSEMOVE()
     ON_WM_RBUTTONDOWN()
+    ON_COMMAND(ID_STEP_MESH, &CChildView::OnStepMesh)
 END_MESSAGE_MAP()
 
 
@@ -92,7 +169,8 @@ void CChildView::OnGLDraw(CDC* pDC)
 
     // Set the material properties for the front face of the objects
     GLfloat msugreen[] = { 0.f, .47f, .2f,  1.f };
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, msugreen);
+    GLfloat white[] = { 1.f, 1.f, 1.f, 1.f };
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, white);
 
     // Draw a coordinate axis
     glColor3d(0., 1., 1.);
@@ -112,12 +190,43 @@ void CChildView::OnGLDraw(CDC* pDC)
     //
     const double RED[] = { 0.7, 0.0, 0.0 };
 
-    glPushMatrix();
-    glTranslated(1.5, 1.5, 1.5);
-    glRotated(m_spinAngle, 0., 0., 1.);
-    glTranslated(-1.5, -1.5, -1.5);
-    Box(3., 3., 3., RED);
-    glPopMatrix();
+
+	switch (m_scene) {
+case ID_STEP_MESH:
+        glPushMatrix();
+        glRotated(m_spinAngle / 3, 0, 1, 0);
+        
+
+        glPushMatrix();
+        glTranslated(0, 4, 0);
+        m_mesh.Draw();
+        glPopMatrix();
+
+        m_surface.Draw();
+
+        glPushMatrix();
+        glRotated(270.0, 0., 0., 1.);
+        glTranslated(0, 4, -2);  
+        
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glBindTexture(GL_TEXTURE_2D, m_fish_texture.TexName());
+        m_fish.Draw();
+        glDisable(GL_TEXTURE_2D);
+
+        glPopMatrix();
+
+        glPopMatrix();
+        break;
+	default:
+		glPushMatrix();
+		glTranslated(1.5, 1.5, 1.5);
+		glRotated(m_spinAngle, 0., 0., 1.);
+		glTranslated(-1.5, -1.5, -1.5);
+		Box(3., 3., 3., RED);
+		glPopMatrix();
+	}
+
 }
 
 //
@@ -244,4 +353,11 @@ void CChildView::OnRButtonDown(UINT nFlags, CPoint point)
     m_camera.MouseDown(point.x, point.y, 2);
 
     COpenGLWnd::OnRButtonDown(nFlags, point);
+}
+
+void CChildView::OnStepMesh()
+{
+    // TODO: Add your command handler code here
+    m_scene = ID_STEP_MESH;
+    Invalidate();
 }

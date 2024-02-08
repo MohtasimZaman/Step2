@@ -189,6 +189,7 @@
     <ClInclude Include="graphics\GrTexture.h" />
     <ClInclude Include="graphics\OpenGLWnd.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Step2.h" />
@@ -200,6 +201,7 @@
     <ClCompile Include="graphics\GrTexture.cpp" />
     <ClCompile Include="graphics\OpenGLWnd.cpp" />
     <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

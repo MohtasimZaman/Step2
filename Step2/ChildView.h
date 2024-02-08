@@ -7,6 +7,7 @@
 #include "graphics/OpenGLWnd.h"
 #include "graphics/GrTexture.h"
 #include "graphics/GrCamera.h"
+#include "Mesh.h"
 
 
 // CChildView window
@@ -20,11 +21,16 @@ public:
 // Attributes
 public:
 	CGrTexture m_wood;
+	CGrTexture m_fish_texture;
 	CGrCamera m_camera;
 
 private:
 	double  m_spinAngle;
 	UINT_PTR m_spinTimer;
+	CMesh           m_mesh;
+	CMesh           m_surface;
+	CMesh			m_fish;
+	int             m_scene;
 
 // Operations
 public:
@@ -36,6 +42,9 @@ public:
 // Implementation
 public:
 	virtual ~CChildView();
+
+private:
+	void CreateMesh();
 
 public:
 	virtual void OnGLDraw(CDC* pDC);
@@ -52,5 +61,6 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnStepMesh();
 };
 
