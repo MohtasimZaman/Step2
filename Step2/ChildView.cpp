@@ -16,6 +16,12 @@
 
 CChildView::CChildView()
 {
+    m_wood.LoadFile(L"textures/plank01.bmp");
+
+    m_spinAngle = 0;
+    m_spinTimer = 0;
+
+    m_camera.Set(20, 10, 50, 0, 0, 0, 0, 1, 0);
 }
 
 CChildView::~CChildView()
@@ -25,6 +31,11 @@ CChildView::~CChildView()
 
 BEGIN_MESSAGE_MAP(CChildView, COpenGLWnd)
 	ON_WM_PAINT()
+    ON_COMMAND(ID_STEP_SPIN, &CChildView::OnStepSpin)
+    ON_WM_TIMER()
+    ON_WM_LBUTTONDOWN()
+    ON_WM_MOUSEMOVE()
+    ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -52,24 +63,9 @@ void CChildView::OnGLDraw(CDC* pDC)
     //
     // Set up the camera
     //
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    // Determine the screen size so we can determine the aspect ratio
     int width, height;
     GetSize(width, height);
-    GLdouble aspectratio = GLdouble(width) / GLdouble(height);
-
-    // Set the camera parameters
-    gluPerspective(25.,         // Vertical FOV degrees.
-        aspectratio, // The aspect ratio.
-        10.,         // Near clipping 40/130
-        200.);       // Far clipping
-
-    // Set the camera location
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    m_camera.Apply(width, height);
 
     gluLookAt(20., 10., 50.,    // eye x,y,z
         0., 0., 0.,       // center x,y,z
@@ -115,7 +111,13 @@ void CChildView::OnGLDraw(CDC* pDC)
     // INSERT DRAWING CODE HERE
     //
     const double RED[] = { 0.7, 0.0, 0.0 };
+
+    glPushMatrix();
+    glTranslated(1.5, 1.5, 1.5);
+    glRotated(m_spinAngle, 0., 0., 1.);
+    glTranslated(-1.5, -1.5, -1.5);
     Box(3., 3., 3., RED);
+    glPopMatrix();
 }
 
 //
@@ -126,9 +128,13 @@ void CChildView::OnGLDraw(CDC* pDC)
 inline void Quad(GLdouble* v1, GLdouble* v2, GLdouble* v3, GLdouble* v4)
 {
     glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
     glVertex3dv(v1);
+    glTexCoord2f(1, 0);
     glVertex3dv(v2);
+    glTexCoord2f(1, 1);
     glVertex3dv(v3);
+    glTexCoord2f(0, 1);
     glVertex3dv(v4);
     glEnd();
 }
@@ -154,6 +160,10 @@ void CChildView::Box(GLdouble p_x, GLdouble p_y, GLdouble p_z, const GLdouble* p
     GLdouble g[] = { p_x, p_y, 0. };
     GLdouble h[] = { 0., p_y, 0. };
 
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, m_wood.TexName());
+
     glNormal3d(0., 0., 1.);
     Quad(a, b, c, d); // Front
 
@@ -172,9 +182,66 @@ void CChildView::Box(GLdouble p_x, GLdouble p_y, GLdouble p_z, const GLdouble* p
     glNormal3d(0., -1., 0.);
     Quad(e, f, b, a); // Bottom
 
+    glDisable(GL_TEXTURE_2D);
+
     GLfloat lightpos[] = { 10, 10, 10, 1.0 };
     glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
+
+
 }
 
 
 
+
+
+void CChildView::OnStepSpin()
+{
+    // TODO: Add your command handler code here
+    if (m_spinTimer == 0)
+    {
+        // Create the timer
+        m_spinTimer = SetTimer(1, 30, NULL);
+    }
+    else
+    {
+        // Destroy the timer
+        KillTimer(m_spinTimer);
+        m_spinTimer = 0;
+    }
+}
+
+
+void CChildView::OnTimer(UINT_PTR nIDEvent)
+{
+    // TODO: Add your message handler code here and/or call default
+
+    m_spinAngle += 5;       // 5 degrees every 30ms about
+    Invalidate();
+
+    COpenGLWnd::OnTimer(nIDEvent);
+}
+
+
+void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    m_camera.MouseDown(point.x, point.y);
+
+    COpenGLWnd::OnLButtonDown(nFlags, point);
+}
+
+
+void CChildView::OnMouseMove(UINT nFlags, CPoint point)
+{
+    if (m_camera.MouseMove(point.x, point.y, nFlags))
+        Invalidate();
+
+    COpenGLWnd::OnMouseMove(nFlags, point);
+}
+
+
+void CChildView::OnRButtonDown(UINT nFlags, CPoint point)
+{
+    m_camera.MouseDown(point.x, point.y, 2);
+
+    COpenGLWnd::OnRButtonDown(nFlags, point);
+}

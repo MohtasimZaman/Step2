@@ -5,6 +5,8 @@
 
 #pragma once
 #include "graphics/OpenGLWnd.h"
+#include "graphics/GrTexture.h"
+#include "graphics/GrCamera.h"
 
 
 // CChildView window
@@ -17,6 +19,12 @@ public:
 
 // Attributes
 public:
+	CGrTexture m_wood;
+	CGrCamera m_camera;
+
+private:
+	double  m_spinAngle;
+	UINT_PTR m_spinTimer;
 
 // Operations
 public:
@@ -38,5 +46,11 @@ public:
 protected:
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnStepSpin();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };
 
