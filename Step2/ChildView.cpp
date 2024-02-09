@@ -206,7 +206,7 @@ case ID_STEP_MESH:
 
         glPushMatrix();
         glRotated(270.0, 0., 0., 1.);
-        glTranslated(0, 4, -2);  
+        glTranslated(-8, 8, 3);  
         
         glEnable(GL_TEXTURE_2D);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
